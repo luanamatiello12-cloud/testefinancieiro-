@@ -6,6 +6,7 @@
   "types": "generated/client/index.d.ts",
   "scripts": {
     "generate": "prisma generate",
+    "generate:prod": "prisma generate --schema=prisma/schema.production.prisma",
     "migrate": "prisma migrate dev",
     "seed": "tsx prisma/seed.ts",
     "studio": "prisma studio"
