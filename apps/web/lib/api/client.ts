@@ -31,5 +31,7 @@ export const api = {
   },
 };
 
-export const fetcher = (path: string) => api.get(path);
+export function fetcher<T>(path: string): Promise<T> {
+  return api.get<T>(path);
+}
 export { API_URL };
