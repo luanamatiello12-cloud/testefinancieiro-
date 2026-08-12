@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+dist/
+apps/*/dist/
+apps/*/.next/
+
+# Database
+packages/database/prisma/dev.db
+packages/database/prisma/dev.db-journal
+packages/database/generated/
+
+# Uploads
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+
+# Env files (never commit secrets)
+.env
+.env.local
+.env*.local
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo

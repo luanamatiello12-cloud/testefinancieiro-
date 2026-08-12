@@ -1,0 +1,142 @@
+"use client";
+
+import * as React from "react";
+import { mutate } from "swr";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api/client";
+import { CreditCard } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  card?: CreditCard;
+}
+
+const COLOR_OPTIONS = [
+  "#6366f1", "#22c55e", "#ef4444", "#f59e0b", "#0ea5e9", "#a855f7", "#ec4899", "#14b8a6",
+];
+
+export function CardDialog({ open, onOpenChange, card }: Props) {
+  const [form, setForm] = React.useState({
+    name: card?.name ?? "",
+    bank: card?.bank ?? "",
+    limit: card?.limit?.toString() ?? "",
+    closingDay: card?.closingDay?.toString() ?? "",
+    dueDay: card?.dueDay?.toString() ?? "",
+    color: card?.color ?? COLOR_OPTIONS[0],
+  });
+  const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      setForm({
+        name: card?.name ?? "",
+        bank: card?.bank ?? "",
+        limit: card?.limit?.toString() ?? "",
+        closingDay: card?.closingDay?.toString() ?? "",
+        dueDay: card?.dueDay?.toString() ?? "",
+        color: card?.color ?? COLOR_OPTIONS[0],
+      });
+      setError(null);
+    }
+  }, [open, card]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name || !form.limit || !form.closingDay || !form.dueDay) {
+      setError("Preencha os campos obrigatórios.");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const payload = {
+        name: form.name,
+        bank: form.bank || undefined,
+        limit: Number(form.limit),
+        closingDay: Number(form.closingDay),
+        dueDay: Number(form.dueDay),
+        color: form.color,
+      };
+      if (card) {
+        await api.patch(`/cards/${card.id}`, payload);
+      } else {
+        await api.post("/cards", payload);
+      }
+      await mutate("/cards");
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar cartão");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{card ? "Editar cartão" : "Novo cartão"}</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="name">Nome *</Label>
+            <Input id="name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Ex: Nubank Ultravioleta" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="bank">Banco</Label>
+              <Input id="bank" value={form.bank} onChange={(e) => setForm((f) => ({ ...f, bank: e.target.value }))} placeholder="Opcional" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="limit">Limite *</Label>
+              <Input id="limit" type="number" step="0.01" value={form.limit} onChange={(e) => setForm((f) => ({ ...f, limit: e.target.value }))} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="closingDay">Dia do fechamento *</Label>
+              <Input id="closingDay" type="number" min="1" max="31" value={form.closingDay} onChange={(e) => setForm((f) => ({ ...f, closingDay: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dueDay">Dia do vencimento *</Label>
+              <Input id="dueDay" type="number" min="1" max="31" value={form.dueDay} onChange={(e) => setForm((f) => ({ ...f, dueDay: e.target.value }))} />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Cor</Label>
+            <div className="flex flex-wrap gap-2">
+              {COLOR_OPTIONS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, color }))}
+                  className={cn(
+                    "h-8 w-8 rounded-full border-2 transition-transform",
+                    form.color === color ? "scale-110 border-foreground" : "border-transparent",
+                  )}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Salvando..." : card ? "Salvar alterações" : "Criar cartão"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

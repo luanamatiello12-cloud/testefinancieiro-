@@ -1,0 +1,305 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  WALLET
+  INVESTMENT
+  DIGITAL
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum NotificationType {
+  DUE_SOON
+  OVERDUE
+  CARD_CLOSING
+  LIMIT_ALMOST_REACHED
+  NEGATIVE_BALANCE
+  GOAL_REACHED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+model Account {
+  id              String   @id @default(cuid())
+  name            String
+  type            AccountType
+  bank            String?
+  color           String   @default("#6366f1")
+  icon            String   @default("wallet")
+  initialBalance  Float    @default(0)
+  currentBalance  Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  transactions       Transaction[]
+  transfersFrom       Transfer[]     @relation("TransferFromAccount")
+  transfersTo         Transfer[]     @relation("TransferToAccount")
+
+  @@index([deletedAt])
+}
+
+model Category {
+  id        String          @id @default(cuid())
+  name      String
+  type      TransactionType
+  color     String          @default("#6366f1")
+  icon      String          @default("tag")
+  createdAt DateTime        @default(now())
+  deletedAt DateTime?
+
+  transactions   Transaction[]
+  cardPurchases  CardPurchase[]
+
+  @@index([type, deletedAt])
+}
+
+model CostCenter {
+  id    String @id @default(cuid())
+  name  String
+  color String @default("#6366f1")
+
+  transactions Transaction[]
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  color String @default("#6366f1")
+
+  transactions TransactionTag[]
+}
+
+model TransactionTag {
+  transactionId String
+  tagId         String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([transactionId, tagId])
+}
+
+model Transaction {
+  id                   String           @id @default(cuid())
+  value                Float
+  type                 TransactionType
+  date                 DateTime
+  dueDate              DateTime?
+  paymentDate          DateTime?
+  description          String
+  note                 String?
+  isRecurring          Boolean          @default(false)
+  recurrenceFrequency  RecurrenceFrequency?
+  recurrenceParentId   String?
+  installmentGroupId   String?
+  installmentNumber    Int?
+  installmentTotal     Int?
+  isPaid               Boolean          @default(false)
+  isFavorite           Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
+
+  accountId    String
+  account      Account    @relation(fields: [accountId], references: [id])
+  categoryId   String
+  category     Category   @relation(fields: [categoryId], references: [id])
+  costCenterId String?
+  costCenter   CostCenter? @relation(fields: [costCenterId], references: [id])
+
+  attachments  Attachment[]
+  tags         TransactionTag[]
+
+  clientJobIncome     ClientJob? @relation("ClientJobIncome")
+  clientJobOutsourced ClientJob? @relation("ClientJobOutsourced")
+
+  @@index([date])
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([isPaid, dueDate])
+  @@index([deletedAt])
+}
+
+model Attachment {
+  id            String   @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  url           String
+  filename      String
+  mimetype      String
+  createdAt     DateTime @default(now())
+}
+
+model CreditCard {
+  id         String   @id @default(cuid())
+  name       String
+  bank       String?
+  limit      Float
+  closingDay Int
+  dueDay     Int
+  color      String   @default("#6366f1")
+  icon       String   @default("credit-card")
+  createdAt  DateTime @default(now())
+  deletedAt  DateTime?
+
+  purchases CardPurchase[]
+}
+
+model CardPurchase {
+  id                 String   @id @default(cuid())
+  cardId             String
+  card               CreditCard @relation(fields: [cardId], references: [id])
+  value              Float
+  categoryId         String
+  category           Category @relation(fields: [categoryId], references: [id])
+  establishment      String
+  note               String?
+  date               DateTime
+  invoiceMonth        String
+  installmentGroupId String?
+  installmentNumber  Int?
+  installmentTotal   Int?
+  createdAt          DateTime @default(now())
+  deletedAt          DateTime?
+
+  @@index([cardId])
+  @@index([invoiceMonth])
+}
+
+model CardInvoice {
+  id      String    @id @default(cuid())
+  cardId  String
+  month   String
+  paid    Boolean   @default(false)
+  paidAt  DateTime?
+
+  @@unique([cardId, month])
+}
+
+model Transfer {
+  id            String   @id @default(cuid())
+  fromAccountId String
+  fromAccount   Account  @relation("TransferFromAccount", fields: [fromAccountId], references: [id])
+  toAccountId   String
+  toAccount     Account  @relation("TransferToAccount", fields: [toAccountId], references: [id])
+  value         Float
+  date          DateTime
+  note          String?
+  createdAt     DateTime @default(now())
+}
+
+model Goal {
+  id           String   @id @default(cuid())
+  name         String
+  targetValue  Float
+  currentValue Float    @default(0)
+  deadline     DateTime?
+  icon         String   @default("target")
+  color        String   @default("#6366f1")
+  createdAt    DateTime @default(now())
+  deletedAt    DateTime?
+}
+
+model Notification {
+  id                String           @id @default(cuid())
+  type              NotificationType
+  title             String
+  message           String
+  isRead            Boolean          @default(false)
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdAt         DateTime         @default(now())
+}
+
+model AppSettings {
+  id            String  @id @default("singleton")
+  geminiApiKey  String?
+  geminiModel   String  @default("gemini-1.5-flash")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+enum ServiceType {
+  PHOTO
+  VIDEO
+  CAPTURE
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+
+  jobs ClientJob[]
+
+  @@index([deletedAt])
+}
+
+model ClientJob {
+  id          String      @id @default(cuid())
+  clientId    String
+  client      Client      @relation(fields: [clientId], references: [id])
+  type        ServiceType
+  description String
+  serviceDate DateTime
+
+  incomeTransactionId String      @unique
+  incomeTransaction    Transaction @relation("ClientJobIncome", fields: [incomeTransactionId], references: [id])
+
+  isOutsourced            Boolean      @default(false)
+  outsourcedTo            String?
+  outsourcedTransactionId String?      @unique
+  outsourcedTransaction   Transaction? @relation("ClientJobOutsourced", fields: [outsourcedTransactionId], references: [id])
+
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+
+  @@index([clientId])
+  @@index([deletedAt])
+}
+
+model AuditLog {
+  id           String      @id @default(cuid())
+  entityType   String
+  entityId     String
+  action       AuditAction
+  previousData String?
+  newData      String?
+  createdAt    DateTime    @default(now())
+
+  @@index([entityType, entityId])
+}

@@ -1,0 +1,18 @@
+{
+  "name": "sistema-financeiro",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n API,WEB -c blue,green \"npm run start:dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "db:generate": "npm run generate -w packages/database",
+    "db:migrate": "npm run migrate -w packages/database",
+    "db:seed": "npm run seed -w packages/database",
+    "db:studio": "npm run studio -w packages/database"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
