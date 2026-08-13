@@ -132,7 +132,7 @@ export function TransactionDialog({ open, onOpenChange, transaction, defaultType
                 : "border-border text-muted-foreground hover:bg-secondary",
             )}
           >
-            Receita
+            A Receber
           </button>
           <button
             type="button"
@@ -144,7 +144,7 @@ export function TransactionDialog({ open, onOpenChange, transaction, defaultType
                 : "border-border text-muted-foreground hover:bg-secondary",
             )}
           >
-            Despesa
+            A Pagar
           </button>
         </div>
 
