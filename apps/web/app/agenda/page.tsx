@@ -15,8 +15,8 @@ import { cn, formatCurrency, todayLocalISODate } from "@/lib/utils";
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 const EVENT_META: Record<AgendaEventType, { label: string; color: string; icon: typeof TrendingDown }> = {
-  expense_due: { label: "Despesa", color: "hsl(var(--destructive))", icon: TrendingDown },
-  income_expected: { label: "Receita", color: "hsl(var(--success))", icon: TrendingUp },
+  expense_due: { label: "Conta a pagar", color: "hsl(var(--destructive))", icon: TrendingDown },
+  income_expected: { label: "Conta a receber", color: "hsl(var(--success))", icon: TrendingUp },
   card_due: { label: "Fatura", color: "hsl(var(--primary))", icon: CreditCard },
   event: { label: "Evento", color: "hsl(var(--accent-foreground))", icon: CalendarClock },
 };
