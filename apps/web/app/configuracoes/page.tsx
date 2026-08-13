@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { fetcher, api } from "@/lib/api/client";
 import { AppSettings } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { PushNotificationsCard } from "@/components/shared/push-notifications-card";
 
 const THEME_OPTIONS = [
   { value: "light", label: "Claro", icon: Sun },
@@ -108,6 +109,8 @@ export default function ConfiguracoesPage() {
           </form>
         </CardContent>
       </Card>
+
+      <PushNotificationsCard />
 
       <Card>
         <CardHeader>

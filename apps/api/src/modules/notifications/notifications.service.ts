@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@sistema-financeiro/database";
 import { NotificationsRepository } from "./notifications.repository";
+import { PushService } from "../push/push.service";
 import { utcToday, daysBetweenUTC } from "../../common/date-utils";
 
 function pad(n: number) {
@@ -13,7 +14,10 @@ function currentMonthKey(d = new Date()) {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly repository: NotificationsRepository) {}
+  constructor(
+    private readonly repository: NotificationsRepository,
+    private readonly pushService: PushService,
+  ) {}
 
   private async regenerate() {
     const today = utcToday();
@@ -109,6 +113,12 @@ export class NotificationsService {
 
     const toCreate = live.filter((n) => !existingKeys.has(key(n.type, n.relatedEntityId)));
     await this.repository.createMany(toCreate);
+
+    for (const n of toCreate) {
+      await this.pushService.sendToAll({ title: n.title, body: n.message });
+    }
+
+    return toCreate.length;
   }
 
   async findAll() {
@@ -118,6 +128,11 @@ export class NotificationsService {
       this.repository.countUnread(),
     ]);
     return { notifications, unreadCount };
+  }
+
+  async runScheduledCheck() {
+    const created = await this.regenerate();
+    return { newNotifications: created };
   }
 
   markRead(id: string) {

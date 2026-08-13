@@ -258,6 +258,14 @@ model AgendaEvent {
   @@index([date])
 }
 
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
 model ChatMessage {
   id        String   @id @default(cuid())
   role      String
