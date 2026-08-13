@@ -25,6 +25,19 @@ Acesse http://localhost:3000
 - `npm run dev -w apps/api` — só a API
 - `npm run dev -w apps/web` — só o front
 
+## Deploy (versão pública de teste)
+
+- **Frontend**: Vercel — `https://sistema-financeiro-web-beta.vercel.app` (projeto `sistema-financeiro-web`, root directory `apps/web`)
+- **Backend**: Vercel Serverless Function — `https://sistema-financeiro-api-roan.vercel.app` (projeto `sistema-financeiro-api`, root directory `.`, entrypoint `api/index.ts` → reexporta `apps/api/api/index.ts`, que embrulha o NestJS com `ExpressAdapter` para rodar como função)
+- **Banco**: Postgres via Neon (integração Vercel Marketplace), usa `packages/database/prisma/schema.production.prisma` (variante Postgres do schema — local continua em SQLite via `schema.prisma`)
+
+Peças-chave que resolvem incompatibilidades reais encontradas:
+- `tsconfig.json` na **raiz** do monorepo com `experimentalDecorators`/`emitDecoratorMetadata` — sem isso o bundler do Vercel compila os decorators do NestJS no modo moderno do TS e a API quebra em runtime (`Cannot read properties of undefined (reading 'value')` em qualquer rota).
+- `scripts/postinstall.mjs` — gera o Prisma Client de produção (Postgres) só quando `process.env.VERCEL` está setado, pra não sobrescrever o client SQLite local num `npm install` comum.
+- O projeto Vercel da API precisa ter **Root Directory = raiz do monorepo** (não `apps/api`), senão `packages/database` não é enviado no deploy.
+
+Pra redeployar depois de mudanças: `vercel --prod --yes` dentro de `apps/web` (frontend) e na raiz do repo (API).
+
 ## Clientes (foto/vídeo/captação)
 
 Aba `/clientes` para negócio de fotografia/vídeo: cadastro de cliente, e por cliente uma lista de "trabalhos" (Foto/Vídeo/Captação) com valor a receber, vencimento, e opcionalmente terceirização (pra quem, quanto, quando pagar). Cada trabalho cria automaticamente um lançamento de receita (e de despesa, se terceirizado) no sistema — por isso tudo aparece certinho no Dashboard, Agenda e Notificações sem lógica duplicada. Apagar um trabalho remove os lançamentos vinculados e reverte o saldo se já estavam pagos.

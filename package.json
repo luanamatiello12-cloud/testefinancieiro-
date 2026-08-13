@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "node scripts/postinstall.mjs",
     "dev": "concurrently -n API,WEB -c blue,green \"npm run start:dev -w apps/api\" \"npm run dev -w apps/web\"",
     "db:generate": "npm run generate -w packages/database",
     "db:migrate": "npm run migrate -w packages/database",
