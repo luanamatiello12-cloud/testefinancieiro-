@@ -246,6 +246,18 @@ model AppSettings {
   geminiModel   String  @default("gemini-1.5-flash")
 }
 
+model AgendaEvent {
+  id        String    @id @default(cuid())
+  title     String
+  date      DateTime
+  note      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([date])
+}
+
 model ChatMessage {
   id        String   @id @default(cuid())
   role      String

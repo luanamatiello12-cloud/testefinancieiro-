@@ -19,4 +19,19 @@ export class AgendaRepository {
       include: { card: true },
     });
   }
+
+  eventsInRange(from: Date, to: Date) {
+    return this.prisma.agendaEvent.findMany({
+      where: { deletedAt: null, date: { gte: from, lte: to } },
+      orderBy: { date: "asc" },
+    });
+  }
+
+  createEvent(data: { title: string; date: Date; note?: string }) {
+    return this.prisma.agendaEvent.create({ data });
+  }
+
+  deleteEvent(id: string) {
+    return this.prisma.agendaEvent.update({ where: { id }, data: { deletedAt: new Date() } });
+  }
 }

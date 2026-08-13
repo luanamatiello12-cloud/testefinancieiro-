@@ -4,10 +4,11 @@ import { monthKey, utcMonthRange, utcToday } from "../../common/date-utils";
 
 export interface AgendaEvent {
   date: string;
-  type: "expense_due" | "income_expected" | "card_due";
+  type: "expense_due" | "income_expected" | "card_due" | "event";
   title: string;
   value: number;
   entityId: string;
+  note?: string | null;
 }
 
 function pad(n: number) {
@@ -52,7 +53,31 @@ export class AgendaService {
       });
     }
 
+    const customEvents = await this.repository.eventsInRange(from, to);
+    for (const e of customEvents) {
+      events.push({
+        date: e.date.toISOString().slice(0, 10),
+        type: "event",
+        title: e.title,
+        value: 0,
+        entityId: e.id,
+        note: e.note,
+      });
+    }
+
     events.sort((a, b) => a.date.localeCompare(b.date));
     return { month: `${year}-${pad(month)}`, events };
+  }
+
+  createEvent(dto: { title: string; date: string; note?: string }) {
+    return this.repository.createEvent({
+      title: dto.title,
+      date: new Date(dto.date),
+      note: dto.note,
+    });
+  }
+
+  deleteEvent(id: string) {
+    return this.repository.deleteEvent(id);
   }
 }

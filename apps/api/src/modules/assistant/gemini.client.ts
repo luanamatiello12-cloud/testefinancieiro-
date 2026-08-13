@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 export interface ExtractedIntent {
   understood: boolean;
-  action: "create_income" | "create_expense" | "none";
+  action: "create_income" | "create_expense" | "create_event" | "none";
   value?: number;
   description?: string;
   accountName?: string;
@@ -18,7 +18,7 @@ const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
     understood: { type: "BOOLEAN" },
-    action: { type: "STRING", enum: ["create_income", "create_expense", "none"] },
+    action: { type: "STRING", enum: ["create_income", "create_expense", "create_event", "none"] },
     value: { type: "NUMBER" },
     description: { type: "STRING" },
     accountName: { type: "STRING" },
@@ -68,7 +68,7 @@ export class GeminiClient {
       throw new Error(`Falha ao chamar a API do Gemini (${res.status})`);
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as any;
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
       throw new Error("Resposta do Gemini veio vazia");
@@ -81,7 +81,7 @@ export class GeminiClient {
     const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Falha ao listar modelos (${res.status})`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     return (data.models ?? [])
       .filter((m: any) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
       .map((m: any) => m.name.replace("models/", ""));

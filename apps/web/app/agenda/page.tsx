@@ -1,12 +1,15 @@
 "use client";
 
 import * as React from "react";
-import useSWR from "swr";
-import { ChevronLeft, ChevronRight, CreditCard, TrendingDown, TrendingUp } from "lucide-react";
-import { fetcher } from "@/lib/api/client";
+import useSWR, { mutate } from "swr";
+import { ChevronLeft, ChevronRight, CreditCard, Plus, Trash2, TrendingDown, TrendingUp, CalendarClock } from "lucide-react";
+import { fetcher, api } from "@/lib/api/client";
 import { AgendaData, AgendaEvent, AgendaEventType } from "@/lib/api/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn, formatCurrency, todayLocalISODate } from "@/lib/utils";
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -15,6 +18,7 @@ const EVENT_META: Record<AgendaEventType, { label: string; color: string; icon: 
   expense_due: { label: "Despesa", color: "hsl(var(--destructive))", icon: TrendingDown },
   income_expected: { label: "Receita", color: "hsl(var(--success))", icon: TrendingUp },
   card_due: { label: "Fatura", color: "hsl(var(--primary))", icon: CreditCard },
+  event: { label: "Evento", color: "hsl(var(--accent-foreground))", icon: CalendarClock },
 };
 
 function pad(n: number) {
@@ -28,9 +32,39 @@ function monthKey(date: Date) {
 export default function AgendaPage() {
   const [cursor, setCursor] = React.useState(() => new Date(todayLocalISODate()));
   const [selectedDay, setSelectedDay] = React.useState(todayLocalISODate());
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [newTitle, setNewTitle] = React.useState("");
+  const [newDate, setNewDate] = React.useState(todayLocalISODate());
+  const [submitting, setSubmitting] = React.useState(false);
 
   const key = monthKey(cursor);
-  const { data } = useSWR<AgendaData>(`/agenda?month=${key}`, fetcher);
+  const swrKey = `/agenda?month=${key}`;
+  const { data } = useSWR<AgendaData>(swrKey, fetcher);
+
+  function openNewEvent() {
+    setNewTitle("");
+    setNewDate(selectedDay);
+    setDialogOpen(true);
+  }
+
+  async function createEvent(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+    setSubmitting(true);
+    try {
+      await api.post("/agenda/events", { title: newTitle.trim(), date: newDate });
+      await mutate(swrKey);
+      setDialogOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function deleteEvent(id: string) {
+    if (!confirm("Excluir este evento da agenda?")) return;
+    await api.delete(`/agenda/events/${id}`);
+    await mutate(swrKey);
+  }
 
   const eventsByDay = React.useMemo(() => {
     const map = new Map<string, AgendaEvent[]>();
@@ -57,9 +91,12 @@ export default function AgendaPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Agenda Financeira</h1>
-        <p className="text-sm text-muted-foreground">Contas a vencer, recebimentos e faturas de cartão</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Agenda</h1>
+          <p className="text-sm text-muted-foreground">Contas a vencer, recebimentos, faturas de cartão e eventos</p>
+        </div>
+        <Button onClick={openNewEvent}><Plus className="h-4 w-4" /> Novo evento</Button>
       </div>
 
       <div className="flex items-center justify-between">
@@ -155,12 +192,55 @@ export default function AgendaPage() {
                   <p className="truncate text-sm font-medium">{e.title}</p>
                   <p className="text-xs text-muted-foreground">{meta.label}</p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums">{formatCurrency(e.value)}</span>
+                {e.type === "event" ? (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => deleteEvent(e.entityId)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                ) : (
+                  <span className="shrink-0 text-sm font-semibold tabular-nums">{formatCurrency(e.value)}</span>
+                )}
               </div>
             );
           })}
         </CardContent>
       </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo evento</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={createEvent} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="event-title">Título</Label>
+              <Input
+                id="event-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Ex: Reunião com o cliente"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="event-date">Data</Label>
+              <Input
+                id="event-date"
+                type="date"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={submitting || !newTitle.trim()}>
+              Salvar evento
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

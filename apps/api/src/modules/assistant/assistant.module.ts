@@ -7,9 +7,10 @@ import { SettingsModule } from "../settings/settings.module";
 import { AccountsModule } from "../accounts/accounts.module";
 import { CategoriesModule } from "../categories/categories.module";
 import { TransactionsModule } from "../transactions/transactions.module";
+import { AgendaModule } from "../agenda/agenda.module";
 
 @Module({
-  imports: [SettingsModule, AccountsModule, CategoriesModule, TransactionsModule],
+  imports: [SettingsModule, AccountsModule, CategoriesModule, TransactionsModule, AgendaModule],
   controllers: [AssistantController],
   providers: [AssistantService, ChatMessageRepository, GeminiClient],
 })

@@ -150,7 +150,7 @@ export interface CashFlowData {
   transactions: Transaction[];
 }
 
-export type AgendaEventType = "expense_due" | "income_expected" | "card_due";
+export type AgendaEventType = "expense_due" | "income_expected" | "card_due" | "event";
 
 export interface AgendaEvent {
   date: string;
@@ -158,6 +158,7 @@ export interface AgendaEvent {
   title: string;
   value: number;
   entityId: string;
+  note?: string | null;
 }
 
 export interface AgendaData {

@@ -5,6 +5,7 @@ import { SettingsService } from "../settings/settings.service";
 import { AccountsRepository } from "../accounts/accounts.repository";
 import { CategoriesRepository } from "../categories/categories.repository";
 import { TransactionsService } from "../transactions/transactions.service";
+import { AgendaService } from "../agenda/agenda.service";
 import { utcToday } from "../../common/date-utils";
 
 @Injectable()
@@ -18,6 +19,7 @@ export class AssistantService {
     private readonly accountsRepository: AccountsRepository,
     private readonly categoriesRepository: CategoriesRepository,
     private readonly transactionsService: TransactionsService,
+    private readonly agendaService: AgendaService,
   ) {}
 
   history() {
@@ -66,7 +68,26 @@ export class AssistantService {
         userMessage,
       });
 
-      if (!intent.understood || intent.action === "none" || !intent.value) {
+      if (!intent.understood || intent.action === "none") {
+        await this.messages.create("assistant", intent.replyMessage);
+        return { reply: intent.replyMessage };
+      }
+
+      if (intent.action === "create_event") {
+        if (!intent.date) {
+          await this.messages.create("assistant", intent.replyMessage);
+          return { reply: intent.replyMessage };
+        }
+        const event = await this.agendaService.createEvent({
+          title: intent.description || userMessage.slice(0, 80),
+          date: intent.date,
+        });
+        const reply = `${intent.replyMessage} (evento em ${formatDateBR(intent.date)})`;
+        await this.messages.create("assistant", reply);
+        return { reply, event };
+      }
+
+      if (!intent.value) {
         await this.messages.create("assistant", intent.replyMessage);
         return { reply: intent.replyMessage };
       }
@@ -119,16 +140,17 @@ Contas existentes: ${ctx.accountNames.join(", ") || "nenhuma"}.
 Categorias de receita: ${ctx.incomeCategoryNames.join(", ") || "nenhuma"}.
 Categorias de despesa: ${ctx.expenseCategoryNames.join(", ") || "nenhuma"}.
 
-Sua tarefa é interpretar a mensagem do usuário e extrair um lançamento financeiro (receita ou despesa), se houver um.
+Sua tarefa é interpretar a mensagem do usuário e extrair um lançamento financeiro (receita ou despesa) ou um evento de agenda, se houver um.
 
-Importante sobre a Agenda: este app não tem uma agenda de eventos pessoais/genéricos. A tela de Agenda é montada automaticamente a partir de lançamentos com vencimento futuro (contas a pagar/receber) e faturas de cartão. Então, se o usuário pedir para "colocar algo na agenda", "lembrar de algo" ou "agendar algo pra mim", isso significa criar um lançamento (receita ou despesa) com uma data de vencimento futura e isPaid=false — NÃO recuse essa tarefa. Se ele já deu valor, descrição e data, extraia normalmente. Se faltar informação (ex: só disse "adiciona algo na agenda" sem valor), retorne action "none" e pergunte no replyMessage o valor, a descrição e a data/vencimento, explicando que a agenda funciona a partir de contas a pagar/receber.
+Sobre a Agenda: a tela de Agenda mostra dois tipos de coisa juntos — (1) lançamentos com vencimento futuro (contas a pagar/receber) e faturas de cartão, e (2) eventos soltos sem valor, tipo lembretes/compromissos. Use action "create_event" quando o usuário pedir pra "colocar/adicionar algo na agenda", "lembrar de algo", "agendar algo" e NÃO houver valor em dinheiro envolvido (ex: "agenda uma reunião com o cliente dia 20", "me lembra de ligar pro contador amanhã") — nesse caso "description" é o título do evento e "date" é a data do evento (YYYY-MM-DD). Se o pedido de agenda tiver um valor em dinheiro (ex: "agenda o pagamento do aluguel, 900 reais, dia 20"), trate como create_expense/create_income normalmente, usando dueDate para a data e isPaid=false.
+Se faltar a data em um pedido de agenda/evento, retorne action "create_event" mesmo assim mas sem "date", e pergunte no replyMessage a data (e o valor, se for o caso de conta a pagar/receber).
 
 Regras:
-- accountName e categoryName devem ser o nome mais parecido possível dentre os existentes listados acima.
+- accountName e categoryName devem ser o nome mais parecido possível dentre os existentes listados acima (só se aplica a create_income/create_expense).
 - Se o usuário não mencionar conta, escolha a mais provável ou deixe em branco.
 - Datas relativas ("hoje", "ontem", "amanhã") devem virar datas absolutas YYYY-MM-DD com base em hoje.
 - isPaid deve ser true se o usuário deu a entender que já pagou/recebeu, false se for algo a pagar/receber no futuro (nesse caso use dueDate para a data de vencimento).
-- Se a mensagem não for um lançamento financeiro nem um pedido de agenda (for uma pergunta, saudação, etc.), retorne action "none" e responda normalmente em replyMessage.
+- Se a mensagem não for um lançamento financeiro nem um pedido de agenda/evento (for uma pergunta, saudação, etc.), retorne action "none" e responda normalmente em replyMessage.
 - replyMessage deve ser curta, natural e em português.`;
 }
 
@@ -143,4 +165,10 @@ function matchByName<T extends { name: string }>(list: T[], name?: string): T | 
 
 function formatBRL(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
+function formatDateBR(isoDate: string) {
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(
+    new Date(isoDate),
+  );
 }
