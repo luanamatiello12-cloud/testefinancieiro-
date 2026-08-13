@@ -20,4 +20,9 @@ export class AssistantController {
   chat(@Body() dto: SendMessageDto) {
     return this.service.chat(dto.message);
   }
+
+  @Get("models")
+  listModels() {
+    return this.service.listAvailableModels();
+  }
 }

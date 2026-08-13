@@ -24,6 +24,13 @@ export class AssistantService {
     return this.messages.findRecent().then((rows) => rows.reverse());
   }
 
+  async listAvailableModels() {
+    const settings = await this.settings.getRaw();
+    if (!settings.geminiApiKey) return { models: [] };
+    const models = await this.gemini.listModels(settings.geminiApiKey);
+    return { models };
+  }
+
   clearHistory() {
     return this.messages.clear();
   }

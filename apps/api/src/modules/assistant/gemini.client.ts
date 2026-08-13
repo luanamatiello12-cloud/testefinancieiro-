@@ -76,4 +76,14 @@ export class GeminiClient {
 
     return JSON.parse(text) as ExtractedIntent;
   }
+
+  async listModels(apiKey: string): Promise<string[]> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Falha ao listar modelos (${res.status})`);
+    const data = await res.json();
+    return (data.models ?? [])
+      .filter((m: any) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
+      .map((m: any) => m.name.replace("models/", ""));
+  }
 }
