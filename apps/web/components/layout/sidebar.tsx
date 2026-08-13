@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Tags, Settings, PiggyBank, X,
-  CreditCard, Repeat, Target, LineChart, CalendarDays, Sparkles, Users, Receipt,
+  Target, LineChart, CalendarDays, Sparkles, Users, Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +15,6 @@ const NAV_ITEMS = [
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/vendas", label: "Vendas", icon: Receipt },
   { href: "/contas", label: "Contas", icon: Wallet },
-  { href: "/cartoes", label: "Cartões", icon: CreditCard },
-  { href: "/transferencias", label: "Transferências", icon: Repeat },
   { href: "/metas", label: "Metas", icon: Target },
   { href: "/fluxo-caixa", label: "Fluxo de Caixa", icon: LineChart },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },

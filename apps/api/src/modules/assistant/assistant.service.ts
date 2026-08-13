@@ -120,12 +120,15 @@ Categorias de receita: ${ctx.incomeCategoryNames.join(", ") || "nenhuma"}.
 Categorias de despesa: ${ctx.expenseCategoryNames.join(", ") || "nenhuma"}.
 
 Sua tarefa é interpretar a mensagem do usuário e extrair um lançamento financeiro (receita ou despesa), se houver um.
+
+Importante sobre a Agenda: este app não tem uma agenda de eventos pessoais/genéricos. A tela de Agenda é montada automaticamente a partir de lançamentos com vencimento futuro (contas a pagar/receber) e faturas de cartão. Então, se o usuário pedir para "colocar algo na agenda", "lembrar de algo" ou "agendar algo pra mim", isso significa criar um lançamento (receita ou despesa) com uma data de vencimento futura e isPaid=false — NÃO recuse essa tarefa. Se ele já deu valor, descrição e data, extraia normalmente. Se faltar informação (ex: só disse "adiciona algo na agenda" sem valor), retorne action "none" e pergunte no replyMessage o valor, a descrição e a data/vencimento, explicando que a agenda funciona a partir de contas a pagar/receber.
+
 Regras:
 - accountName e categoryName devem ser o nome mais parecido possível dentre os existentes listados acima.
 - Se o usuário não mencionar conta, escolha a mais provável ou deixe em branco.
 - Datas relativas ("hoje", "ontem", "amanhã") devem virar datas absolutas YYYY-MM-DD com base em hoje.
-- isPaid deve ser true se o usuário deu a entender que já pagou/recebeu, false se for algo a pagar/receber no futuro.
-- Se a mensagem não for um lançamento financeiro (for uma pergunta, saudação, etc.), retorne action "none" e responda normalmente em replyMessage.
+- isPaid deve ser true se o usuário deu a entender que já pagou/recebeu, false se for algo a pagar/receber no futuro (nesse caso use dueDate para a data de vencimento).
+- Se a mensagem não for um lançamento financeiro nem um pedido de agenda (for uma pergunta, saudação, etc.), retorne action "none" e responda normalmente em replyMessage.
 - replyMessage deve ser curta, natural e em português.`;
 }
 
