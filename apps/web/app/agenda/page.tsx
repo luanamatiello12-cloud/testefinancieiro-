@@ -134,12 +134,15 @@ export default function AgendaPage() {
               const isSelected = dateStr === selectedDay;
               const dayNum = Number(dateStr.slice(8, 10));
 
+              const visibleEvents = events.slice(0, 3);
+              const hiddenCount = events.length - visibleEvents.length;
+
               return (
                 <button
                   key={dateStr}
                   onClick={() => setSelectedDay(dateStr)}
                   className={cn(
-                    "flex h-16 flex-col items-start gap-1 rounded-lg border p-1.5 text-left transition-colors sm:h-20",
+                    "flex min-h-[5.5rem] flex-col items-start gap-1 rounded-lg border p-1.5 text-left transition-colors sm:min-h-[6.5rem]",
                     isSelected ? "border-primary bg-primary/5" : "border-transparent hover:bg-secondary",
                   )}
                 >
@@ -151,14 +154,22 @@ export default function AgendaPage() {
                   >
                     {dayNum}
                   </span>
-                  <div className="flex flex-wrap gap-0.5">
-                    {events.slice(0, 3).map((e, idx) => (
-                      <span
-                        key={idx}
-                        className="h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: EVENT_META[e.type].color }}
-                      />
-                    ))}
+                  <div className="flex w-full flex-col gap-0.5">
+                    {visibleEvents.map((e, idx) => {
+                      const color = EVENT_META[e.type].color;
+                      return (
+                        <span
+                          key={idx}
+                          className="w-full truncate rounded px-1 py-0.5 text-[11px] font-medium leading-tight sm:text-xs"
+                          style={{ backgroundColor: `${color}22`, color }}
+                        >
+                          {e.title}
+                        </span>
+                      );
+                    })}
+                    {hiddenCount > 0 && (
+                      <span className="text-[11px] text-muted-foreground">+{hiddenCount}</span>
+                    )}
                   </div>
                 </button>
               );
