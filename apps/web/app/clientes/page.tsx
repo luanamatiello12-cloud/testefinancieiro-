@@ -74,6 +74,19 @@ export default function ClientesPage() {
                     <p className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {client.phone}</p>
                   )}
                 </div>
+                {client.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {client.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                        style={{ backgroundColor: `${tag.color}22`, color: tag.color }}
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </Link>

@@ -3,9 +3,10 @@ import { ClientsController } from "./clients.controller";
 import { ClientsService } from "./clients.service";
 import { ClientsRepository } from "./clients.repository";
 import { TransactionsModule } from "../transactions/transactions.module";
+import { TagsModule } from "../tags/tags.module";
 
 @Module({
-  imports: [TransactionsModule],
+  imports: [TransactionsModule, TagsModule],
   controllers: [ClientsController],
   providers: [ClientsService, ClientsRepository],
 })

@@ -203,6 +203,12 @@ export interface ChatMessage {
   createdAt: string;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -210,6 +216,7 @@ export interface Client {
   phone: string | null;
   notes: string | null;
   createdAt: string;
+  tags: Tag[];
 }
 
 export type ServiceType = "PHOTO" | "VIDEO" | "CAPTURE";

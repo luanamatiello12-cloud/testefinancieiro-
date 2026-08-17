@@ -15,6 +15,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
 import { AssistantModule } from "./modules/assistant/assistant.module";
 import { ClientsModule } from "./modules/clients/clients.module";
 import { PushModule } from "./modules/push/push.module";
+import { TagsModule } from "./modules/tags/tags.module";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PushModule } from "./modules/push/push.module";
     AssistantModule,
     ClientsModule,
     PushModule,
+    TagsModule,
   ],
 })
 export class AppModule {}

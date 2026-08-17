@@ -52,4 +52,14 @@ export class ClientsController {
   removeJob(@Param("jobId") jobId: string) {
     return this.service.removeJob(jobId);
   }
+
+  @Post(":id/tags")
+  addTag(@Param("id") id: string, @Body("name") name: string) {
+    return this.service.addTag(id, name);
+  }
+
+  @Delete(":id/tags/:tagId")
+  removeTag(@Param("id") id: string, @Param("tagId") tagId: string) {
+    return this.service.removeTag(id, tagId);
+  }
 }

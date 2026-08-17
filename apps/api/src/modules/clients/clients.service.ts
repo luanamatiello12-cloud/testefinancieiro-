@@ -4,22 +4,43 @@ import { CreateClientDto } from "./dto/create-client.dto";
 import { UpdateClientDto } from "./dto/update-client.dto";
 import { CreateClientJobDto } from "./dto/create-client-job.dto";
 import { TransactionsService } from "../transactions/transactions.service";
+import { TagsRepository } from "../tags/tags.repository";
+
+function flattenTags<T extends { tags?: { tag: unknown }[] }>(client: T | null) {
+  if (!client) return client;
+  return { ...client, tags: client.tags?.map((t) => t.tag) ?? [] };
+}
 
 @Injectable()
 export class ClientsService {
   constructor(
     private readonly repository: ClientsRepository,
     private readonly transactionsService: TransactionsService,
+    private readonly tagsRepository: TagsRepository,
   ) {}
 
-  findAll() {
-    return this.repository.findAll();
+  async findAll() {
+    const clients = await this.repository.findAll();
+    return clients.map((c) => flattenTags(c));
   }
 
   async findById(id: string) {
     const client = await this.repository.findById(id);
     if (!client) throw new NotFoundException("Cliente não encontrado");
-    return client;
+    return flattenTags(client);
+  }
+
+  async addTag(clientId: string, tagName: string) {
+    await this.findById(clientId);
+    const tag = await this.tagsRepository.findOrCreateByName(tagName);
+    const updated = await this.repository.addTag(clientId, tag.id);
+    return flattenTags(updated);
+  }
+
+  async removeTag(clientId: string, tagId: string) {
+    await this.findById(clientId);
+    const updated = await this.repository.removeTag(clientId, tagId);
+    return flattenTags(updated);
   }
 
   create(data: CreateClientDto) {

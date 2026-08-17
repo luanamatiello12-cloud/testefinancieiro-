@@ -16,12 +16,30 @@ export class ClientsRepository {
   findAll() {
     return this.prisma.client.findMany({
       where: { deletedAt: null },
+      include: { tags: { include: { tag: true } } },
       orderBy: { name: "asc" },
     });
   }
 
   findById(id: string) {
-    return this.prisma.client.findFirst({ where: { id, deletedAt: null } });
+    return this.prisma.client.findFirst({
+      where: { id, deletedAt: null },
+      include: { tags: { include: { tag: true } } },
+    });
+  }
+
+  async addTag(clientId: string, tagId: string) {
+    await this.prisma.clientTag.upsert({
+      where: { clientId_tagId: { clientId, tagId } },
+      create: { clientId, tagId },
+      update: {},
+    });
+    return this.findById(clientId);
+  }
+
+  async removeTag(clientId: string, tagId: string) {
+    await this.prisma.clientTag.deleteMany({ where: { clientId, tagId } });
+    return this.findById(clientId);
   }
 
   create(data: CreateClientDto) {

@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ClientJobDialog } from "@/components/shared/client-job-dialog";
+import { ClientTags } from "@/components/shared/client-tags";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 const TYPE_ICON: Record<ServiceType, typeof Camera> = {
@@ -122,6 +123,11 @@ export default function ClientDetailPage() {
           {client?.email && <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {client.email}</span>}
           {client?.phone && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {client.phone}</span>}
         </div>
+        {client && (
+          <div className="mt-3">
+            <ClientTags client={client} />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
