@@ -17,7 +17,7 @@ type GeminiPart =
   | { functionResponse: { name: string; response: Record<string, unknown> } };
 
 export interface GeminiTurn {
-  role: "user" | "model" | "function";
+  role: "user" | "model";
   parts: GeminiPart[];
 }
 

@@ -166,7 +166,7 @@ export class AssistantService {
           lastAction = { name: call.name, result: toolResult };
           responseParts.push({ functionResponse: { name: call.name, response: toolResult as Record<string, unknown> } });
         }
-        contents.push({ role: "function", parts: responseParts });
+        contents.push({ role: "user", parts: responseParts });
       }
 
       const reply = "Não consegui concluir isso agora — pode tentar de um jeito mais direto?";
