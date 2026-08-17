@@ -1,64 +1,52 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-export interface ExtractedIntent {
-  understood: boolean;
-  action: "create_income" | "create_expense" | "create_event" | "none";
-  value?: number;
-  description?: string;
-  accountName?: string;
-  categoryName?: string;
-  date?: string;
-  dueDate?: string;
-  isPaid?: boolean;
-  installments?: number;
-  replyMessage: string;
+export interface FunctionDeclaration {
+  name: string;
+  description: string;
+  parameters?: Record<string, unknown>;
 }
 
-const RESPONSE_SCHEMA = {
-  type: "OBJECT",
-  properties: {
-    understood: { type: "BOOLEAN" },
-    action: { type: "STRING", enum: ["create_income", "create_expense", "create_event", "none"] },
-    value: { type: "NUMBER" },
-    description: { type: "STRING" },
-    accountName: { type: "STRING" },
-    categoryName: { type: "STRING" },
-    date: { type: "STRING", description: "YYYY-MM-DD" },
-    dueDate: { type: "STRING", description: "YYYY-MM-DD, only for expenses with a future due date" },
-    isPaid: { type: "BOOLEAN" },
-    installments: { type: "INTEGER" },
-    replyMessage: { type: "STRING", description: "Short, friendly confirmation in Brazilian Portuguese" },
-  },
-  required: ["understood", "action", "replyMessage"],
-};
+export interface FunctionCall {
+  name: string;
+  args: Record<string, unknown>;
+}
 
-/**
- * Thin wrapper around the Gemini REST API (generateContent) using structured
- * JSON output. Untested against a live key — verify the model name and
- * response shape once a real GEMINI key is configured.
- */
+type GeminiPart =
+  | { text: string }
+  | { functionCall: FunctionCall }
+  | { functionResponse: { name: string; response: Record<string, unknown> } };
+
+export interface GeminiTurn {
+  role: "user" | "model" | "function";
+  parts: GeminiPart[];
+}
+
+export interface GeminiChatResult {
+  functionCalls: FunctionCall[];
+  text: string;
+  modelTurn: GeminiTurn;
+}
+
 @Injectable()
 export class GeminiClient {
   private readonly logger = new Logger(GeminiClient.name);
 
-  async extractIntent(params: {
+  async chat(params: {
     apiKey: string;
     model: string;
     systemInstruction: string;
-    userMessage: string;
-  }): Promise<ExtractedIntent> {
+    contents: GeminiTurn[];
+    tools: FunctionDeclaration[];
+  }): Promise<GeminiChatResult> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent?key=${params.apiKey}`;
 
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: params.userMessage }] }],
+        contents: params.contents,
         systemInstruction: { parts: [{ text: params.systemInstruction }] },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: RESPONSE_SCHEMA,
-        },
+        tools: [{ functionDeclarations: params.tools }],
       }),
     });
 
@@ -69,12 +57,25 @@ export class GeminiClient {
     }
 
     const data = (await res.json()) as any;
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
+    const candidate = data.candidates?.[0];
+    const parts: any[] = candidate?.content?.parts ?? [];
+    if (parts.length === 0) {
       throw new Error("Resposta do Gemini veio vazia");
     }
 
-    return JSON.parse(text) as ExtractedIntent;
+    const functionCalls: FunctionCall[] = parts
+      .filter((p) => p.functionCall)
+      .map((p) => p.functionCall as FunctionCall);
+    const text = parts
+      .filter((p) => typeof p.text === "string")
+      .map((p) => p.text)
+      .join("\n");
+
+    return {
+      functionCalls,
+      text,
+      modelTurn: { role: "model", parts },
+    };
   }
 
   async listModels(apiKey: string): Promise<string[]> {

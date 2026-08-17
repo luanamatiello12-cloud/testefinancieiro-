@@ -9,5 +9,6 @@ import { TagsModule } from "../tags/tags.module";
   imports: [TransactionsModule, TagsModule],
   controllers: [ClientsController],
   providers: [ClientsService, ClientsRepository],
+  exports: [ClientsService],
 })
 export class ClientsModule {}

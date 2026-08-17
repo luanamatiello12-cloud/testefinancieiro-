@@ -6,5 +6,6 @@ import { DashboardRepository } from "./dashboard.repository";
 @Module({
   controllers: [DashboardController, SearchController],
   providers: [DashboardService, DashboardRepository],
+  exports: [DashboardService],
 })
 export class DashboardModule {}

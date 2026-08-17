@@ -8,9 +8,19 @@ import { AccountsModule } from "../accounts/accounts.module";
 import { CategoriesModule } from "../categories/categories.module";
 import { TransactionsModule } from "../transactions/transactions.module";
 import { AgendaModule } from "../agenda/agenda.module";
+import { ClientsModule } from "../clients/clients.module";
+import { DashboardModule } from "../dashboard/dashboard.module";
 
 @Module({
-  imports: [SettingsModule, AccountsModule, CategoriesModule, TransactionsModule, AgendaModule],
+  imports: [
+    SettingsModule,
+    AccountsModule,
+    CategoriesModule,
+    TransactionsModule,
+    AgendaModule,
+    ClientsModule,
+    DashboardModule,
+  ],
   controllers: [AssistantController],
   providers: [AssistantService, ChatMessageRepository, GeminiClient],
 })
