@@ -16,7 +16,7 @@ const TOOLS: FunctionDeclaration[] = [
   {
     name: "criar_lancamento",
     description:
-      "Cria uma receita ou despesa (lançamento financeiro). Use para pedidos como 'gastei X', 'recebi X', 'tenho que pagar X' ou 'vou receber X'.",
+      "Cria uma receita ou um gasto (lançamento financeiro). Use para pedidos como 'gastei X', 'recebi X', 'tenho que pagar X' ou 'vou receber X'.",
     parameters: {
       type: "OBJECT",
       properties: {
@@ -57,7 +57,7 @@ const TOOLS: FunctionDeclaration[] = [
   },
   {
     name: "listar_lancamentos_recentes",
-    description: "Lista lançamentos (receitas/despesas) recentes, com filtros opcionais.",
+    description: "Lista lançamentos (receitas/gastos) recentes, com filtros opcionais.",
     parameters: {
       type: "OBJECT",
       properties: {
@@ -69,7 +69,7 @@ const TOOLS: FunctionDeclaration[] = [
   },
   {
     name: "resumo_financeiro",
-    description: "Retorna o resumo financeiro do mês atual: saldo total, receitas, despesas e lucro do mês.",
+    description: "Retorna o resumo financeiro do mês atual: saldo total, receitas, gastos e lucro do mês.",
   },
   {
     name: "saldo_contas",
@@ -334,7 +334,7 @@ function buildSystemInstruction(ctx: {
 Hoje é ${today}.
 Contas existentes: ${ctx.accountNames.join(", ") || "nenhuma"}.
 Categorias de receita: ${ctx.incomeCategoryNames.join(", ") || "nenhuma"}.
-Categorias de despesa: ${ctx.expenseCategoryNames.join(", ") || "nenhuma"}.
+Categorias de gasto: ${ctx.expenseCategoryNames.join(", ") || "nenhuma"}.
 
 Você tem ferramentas (function calling) para CONSULTAR dados reais do sistema (clientes, lançamentos, saldo, resumo financeiro, vendas pendentes) e para CRIAR lançamentos e eventos de agenda. Use essas ferramentas sempre que a pergunta do usuário depender de dados dele — nunca invente números, nomes de clientes ou valores. Se a pergunta pedir uma lista ou um número (ex: "quais meus últimos clientes", "quanto gastei esse mês", "o que tenho a receber"), chame a ferramenta correspondente antes de responder.
 
@@ -344,6 +344,8 @@ Regras para criar_lancamento:
 - nomeConta e nomeCategoria devem ser o nome mais parecido possível dentre os existentes listados acima.
 - Datas relativas ("hoje", "ontem", "amanhã") viram datas absolutas YYYY-MM-DD com base em hoje.
 - pago=true se o usuário deu a entender que já pagou/recebeu; pago=false se for algo a pagar/receber no futuro (use vencimento nesse caso).
+
+Ao falar com o usuário, chame despesas de "gasto"/"gastos" (nunca "despesa"/"despesas").
 
 Depois de usar uma ferramenta, responda ao usuário em português, de forma curta e natural, resumindo o resultado (não repita dados técnicos como IDs).
 Se a mensagem não precisar de nenhuma ferramenta (pergunta genérica, saudação), responda direto sem chamar nada.`;

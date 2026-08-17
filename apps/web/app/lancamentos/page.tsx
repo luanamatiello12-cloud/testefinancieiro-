@@ -59,14 +59,14 @@ export default function LancamentosPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Lançamentos</h1>
-          <p className="text-sm text-muted-foreground">Receitas e despesas</p>
+          <p className="text-sm text-muted-foreground">Receitas e gastos</p>
         </div>
         <div className="flex gap-2">
           <Button variant="success" onClick={() => openCreate("INCOME")}>
             <Plus className="h-4 w-4" /> Receita
           </Button>
           <Button variant="destructive" onClick={() => openCreate("EXPENSE")}>
-            <Plus className="h-4 w-4" /> Despesa
+            <Plus className="h-4 w-4" /> Gasto
           </Button>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function LancamentosPage() {
             <SelectContent>
               <SelectItem value={ALL}>Todos os tipos</SelectItem>
               <SelectItem value="INCOME">Receitas</SelectItem>
-              <SelectItem value="EXPENSE">Despesas</SelectItem>
+              <SelectItem value="EXPENSE">Gastos</SelectItem>
             </SelectContent>
           </Select>
 

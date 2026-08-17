@@ -89,7 +89,7 @@ export default function FluxoCaixaPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Receitas no período" value={data?.totalReceitas ?? 0} icon={TrendingUp} tone="success" />
-        <StatCard label="Despesas no período" value={data?.totalDespesas ?? 0} icon={TrendingDown} tone="destructive" />
+        <StatCard label="Gastos no período" value={data?.totalDespesas ?? 0} icon={TrendingDown} tone="destructive" />
         <StatCard
           label="Saldo do período"
           value={data?.saldoPeriodo ?? 0}

@@ -94,7 +94,7 @@ export function CategoryDialog({ open, onOpenChange, category, defaultType }: Pr
                 form.type === "EXPENSE" ? "border-destructive bg-destructive/10 text-destructive" : "border-border text-muted-foreground hover:bg-secondary",
               )}
             >
-              Despesa
+              Gasto
             </button>
           </div>
 

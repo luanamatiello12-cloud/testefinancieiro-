@@ -44,7 +44,7 @@ export function IncomeExpenseChart({ data }: Props) {
           formatter={(value: number) => formatCurrency(value)}
         />
         <Bar dataKey="receitas" name="Receitas" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="despesas" name="Despesas" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="despesas" name="Gastos" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

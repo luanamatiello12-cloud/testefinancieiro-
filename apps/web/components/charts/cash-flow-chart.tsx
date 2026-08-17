@@ -33,7 +33,7 @@ export function CashFlowChart({ data }: { data: CashFlowBucket[] }) {
           formatter={(value: number) => formatCurrency(value)}
         />
         <Bar dataKey="receitas" name="Receitas" fill="hsl(var(--success))" radius={[3, 3, 0, 0]} />
-        <Bar dataKey="despesas" name="Despesas" fill="hsl(var(--destructive))" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="despesas" name="Gastos" fill="hsl(var(--destructive))" radius={[3, 3, 0, 0]} />
         <Line
           type="monotone"
           dataKey="saldo"

@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Receitas do mês" value={summary?.totalReceitas ?? 0} icon={TrendingUp} tone="success" />
-        <StatCard label="Despesas do mês" value={summary?.totalDespesas ?? 0} icon={TrendingDown} tone="destructive" />
+        <StatCard label="Gastos do mês" value={summary?.totalDespesas ?? 0} icon={TrendingDown} tone="destructive" />
         <StatCard
           label="Lucro do mês"
           value={summary?.lucroMes ?? 0}
@@ -44,7 +44,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Receita x Despesa (últimos 6 meses)</CardTitle>
+            <CardTitle>Receita x Gasto (últimos 6 meses)</CardTitle>
           </CardHeader>
           <CardContent>
             {charts ? <IncomeExpenseChart data={charts.receitaXDespesa} /> : <ChartSkeleton />}
