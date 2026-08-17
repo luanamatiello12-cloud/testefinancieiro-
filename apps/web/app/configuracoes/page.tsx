@@ -93,7 +93,7 @@ export default function ConfiguracoesPage() {
           </div>
           <p className="text-xs text-muted-foreground">
             Cole sua chave da API do Gemini (Google AI Studio) para conversar com o assistente e lançar
-            receitas/despesas por texto natural, em vez de preencher formulários.
+            receitas/gastos por texto natural, em vez de preencher formulários.
           </p>
           <form onSubmit={saveApiKey} className="flex gap-2">
             <Input

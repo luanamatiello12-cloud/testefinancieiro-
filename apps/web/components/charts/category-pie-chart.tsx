@@ -11,7 +11,7 @@ export function CategoryPieChart({ data }: Props) {
   if (data.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        Sem despesas neste mês ainda
+        Sem gastos neste mês ainda
       </div>
     );
   }
