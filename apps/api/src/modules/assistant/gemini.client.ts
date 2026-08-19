@@ -39,24 +39,37 @@ export class GeminiClient {
     tools: FunctionDeclaration[];
   }): Promise<GeminiChatResult> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent?key=${params.apiKey}`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: params.contents,
-        systemInstruction: { parts: [{ text: params.systemInstruction }] },
-        tools: [{ functionDeclarations: params.tools }],
-      }),
+    const body = JSON.stringify({
+      contents: params.contents,
+      systemInstruction: { parts: [{ text: params.systemInstruction }] },
+      tools: [{ functionDeclarations: params.tools }],
     });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      this.logger.error(`Gemini API error ${res.status}: ${body}`);
-      throw new Error(`Falha ao chamar a API do Gemini (${res.status})`);
+    const retryDelaysMs = [500, 1500];
+    let res: Response | undefined;
+    let lastErrorBody = "";
+
+    for (let attempt = 0; attempt <= retryDelaysMs.length; attempt++) {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+
+      if (res.ok) break;
+
+      lastErrorBody = await res.text().catch(() => "");
+      const retriable = res.status === 503 || res.status === 429;
+      if (!retriable || attempt === retryDelaysMs.length) {
+        this.logger.error(`Gemini API error ${res.status}: ${lastErrorBody}`);
+        throw new Error(`Falha ao chamar a API do Gemini (${res.status})`);
+      }
+
+      this.logger.warn(`Gemini API ${res.status}, tentando de novo em ${retryDelaysMs[attempt]}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, retryDelaysMs[attempt]));
     }
 
-    const data = (await res.json()) as any;
+    const data = (await res!.json()) as any;
     const candidate = data.candidates?.[0];
     const parts: any[] = candidate?.content?.parts ?? [];
     if (parts.length === 0) {
